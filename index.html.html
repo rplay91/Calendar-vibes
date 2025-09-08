@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Jadwal Kuliah & Tugas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e1e1e;
+      color: #f0f0f0;
+      margin: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .left {
+      flex: 3;
+    }
+    .right {
+      flex: 1;
+      background: #2a2a2a;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 8px;
+      text-align: center;
+      position: relative; /* supaya badge bisa absolute */
+    }
+    th {
+      background: #333;
+    }
+    tr:nth-child(even) {
+      background: #2a2a2a;
+    }
+    .task-form {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #2a2a2a;
+      border-radius: 8px;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      cursor: pointer;
+      background: #4caf50;
+      color: white;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .task-list {
+      margin-top: 20px;
+    }
+    .task-item {
+      background: #333;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .task-filter {
+      margin-top: 10px;
+      text-align: center;
+    }
+    /* Badge kecil untuk jumlah tugas */
+    .badge {
+      position: absolute;
+      top: 2px;
+      right: 5px;
+      background: red;
+      color: white;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Jadwal Kuliah & Progress Meeting</h1>
+
+  <!-- Form Tambah Tugas -->
+  <div class="task-form">
+    <h2>Assign Tugas</h2>
+    <select id="course">
+      <option value="Python untuk Pendidikan" data-day="Rabu">Python untuk Pendidikan</option>
+      <option value="Kecerdasan Buatan" data-day="Kamis">Kecerdasan Buatan</option>
+      <option value="Topik Khusus Komputer" data-day="Kamis">Topik Khusus Komputer</option>
+      <option value="Bahasa Inggris Akademik" data-day="Kamis">Bahasa Inggris Akademik</option>
+      <option value="Studi Multimedia Asia Selatan" data-day="Jumat">Studi Multimedia Asia Selatan</option>
+      <option value="Linguistik Korpus" data-day="Sabtu">Linguistik Korpus</option>
+      <option value="Progress Meeting" data-day="Selasa">Progress Meeting</option>
+    </select>
+    <input type="text" id="task" placeholder="Deskripsi tugas...">
+    <button onclick="addTask()">Tambah</button>
+  </div>
+
+  <!-- Layout Utama -->
+  <div class="container">
+    <!-- Jadwal -->
+    <div class="left">
+      <table>
+        <thead>
+          <tr>
+            <th>Waktu</th>
+            <th>Senin</th>
+            <th>Selasa</th>
+            <th>Rabu</th>
+            <th>Kamis</th>
+            <th>Jumat</th>
+            <th>Sabtu</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>09:00 - 12:00</td>
+            <td></td>
+            <td></td>
+            <td data-course="Python untuk Pendidikan" data-day="Rabu">Python untuk Pendidikan</td>
+            <td data-course="Kecerdasan Buatan" data-day="Kamis">Kecerdasan Buatan</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>13:00 - 15:00</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td data-course="Topik Khusus Komputer" data-day="Kamis">Topik Khusus Komputer</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>15:00 - 17:00</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td data-course="Studi Multimedia Asia Selatan" data-day="Jumat">Studi Multimedia Asia Selatan</td>
+            <td data-course="Linguistik Korpus" data-day="Sabtu">Linguistik Korpus</td>
+          </tr>
+          <tr>
+            <td>18:00 - 20:00</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td data-course="Bahasa Inggris Akademik" data-day="Kamis">Bahasa Inggris Akademik</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>20:00 - 21:00</td>
+            <td></td>
+            <td data-course="Progress Meeting" data-day="Selasa">Progress Meeting</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Sidebar Tugas -->
+    <div class="right">
+      <h2>Tugas Mingguan</h2>
+      <div class="task-filter">
+        <label for="dayFilter">Filter Hari:</label><br>
+        <select id="dayFilter" onchange="renderTasks()">
+          <option value="Semua">Semua</option>
+          <option value="Senin">Senin</option>
+          <option value="Selasa">Selasa</option>
+          <option value="Rabu">Rabu</option>
+          <option value="Kamis">Kamis</option>
+          <option value="Jumat">Jumat</option>
+          <option value="Sabtu">Sabtu</option>
+        </select>
+      </div>
+      <div id="taskContainer" class="task-list"></div>
+    </div>
+  </div>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    function addTask() {
+      const courseSelect = document.getElementById('course');
+      const course = courseSelect.value;
+      const day = courseSelect.options[courseSelect.selectedIndex].getAttribute("data-day");
+      const task = document.getElementById('task').value;
+
+      if (task.trim() === "") return;
+
+      tasks.push({ course, day, task });
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      document.getElementById('task').value = "";
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const filterDay = document.getElementById('dayFilter').value;
+      const container = document.getElementById('taskContainer');
+      container.innerHTML = "";
+
+      // tampilkan list tugas
+      tasks
+        .filter(t => filterDay === "Semua" || t.day === filterDay)
+        .forEach((t, i) => {
+          container.innerHTML += `
+            <div class="task-item">
+              <b>[${t.day}] ${t.course}:</b> ${t.task}
+              <button style="float:right; background:#e74c3c" onclick="deleteTask(${i})">Hapus</button>
+            </div>
+          `;
+        });
+
+      // update badge di tabel
+      updateBadges();
+    }
+
+    function updateBadges() {
+      // hapus semua badge lama
+      document.querySelectorAll('.badge').forEach(b => b.remove());
+
+      // hitung jumlah tugas per course
+      let countMap = {};
+      tasks.forEach(t => {
+        const key = t.course + "_" + t.day;
+        countMap[key] = (countMap[key] || 0) + 1;
+      });
+
+      // pasang badge
+      document.querySelectorAll('td[data-course]').forEach(td => {
+        const course = td.getAttribute('data-course');
+        const day = td.getAttribute('data-day');
+        const key = course + "_" + day;
+
+        if (countMap[key]) {
+          const badge = document.createElement('span');
+          badge.className = "badge";
+          badge.innerText = countMap[key];
+          td.appendChild(badge);
+        }
+      });
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      renderTasks();
+    }
+
+    renderTasks();
+  </script>
+</body>
+</html>
