@@ -36,7 +36,7 @@
       border: 1px solid #555;
       padding: 8px;
       text-align: center;
-      position: relative; /* supaya badge bisa absolute */
+      position: relative;
     }
     th {
       background: #333;
@@ -73,12 +73,14 @@
       margin: 5px 0;
       padding: 10px;
       border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .task-filter {
       margin-top: 10px;
       text-align: center;
     }
-    /* Badge kecil untuk jumlah tugas */
     .badge {
       position: absolute;
       top: 2px;
@@ -195,21 +197,36 @@
     </div>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
-    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDwelYdBjbUt8sj2ruY-dIA1I4TF-ssAjg",
+  authDomain: "calendar-app-6ec06.firebaseapp.com",
+  databaseURL: "https://calendar-app-6ec06-default-rtdb.firebaseio.com",
+  projectId: "calendar-app-6ec06",
+  storageBucket: "calendar-app-6ec06.firebasestorage.app",
+  messagingSenderId: "431576873425",
+  appId: "1:431576873425:web:8c8a0077aa1238e85788f0",
+  measurementId: "G-XEVB1VFJZ4"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let tasks = [];
+    let tasksMap = {}; // menyimpan key Firebase
 
     function addTask() {
       const courseSelect = document.getElementById('course');
       const course = courseSelect.value;
       const day = courseSelect.options[courseSelect.selectedIndex].getAttribute("data-day");
       const task = document.getElementById('task').value;
-
       if (task.trim() === "") return;
 
-      tasks.push({ course, day, task });
-      localStorage.setItem('tasks', JSON.stringify(tasks));
+      db.ref('tasks').push({ course, day, task });
       document.getElementById('task').value = "";
-      renderTasks();
     }
 
     function renderTasks() {
@@ -217,39 +234,34 @@
       const container = document.getElementById('taskContainer');
       container.innerHTML = "";
 
-      // tampilkan list tugas
-      tasks
-        .filter(t => filterDay === "Semua" || t.day === filterDay)
-        .forEach((t, i) => {
-          container.innerHTML += `
-            <div class="task-item">
-              <b>[${t.day}] ${t.course}:</b> ${t.task}
-              <button style="float:right; background:#e74c3c" onclick="deleteTask(${i})">Hapus</button>
-            </div>
+      tasks.forEach((t, i) => {
+        if (filterDay === "Semua" || t.day === filterDay) {
+          const div = document.createElement('div');
+          div.className = "task-item";
+          div.innerHTML = `
+            <span><b>[${t.day}] ${t.course}:</b> ${t.task}</span>
+            <button style="background:#e74c3c" onclick="deleteTask(${i})">Hapus</button>
           `;
-        });
+          container.appendChild(div);
+        }
+      });
 
-      // update badge di tabel
       updateBadges();
     }
 
     function updateBadges() {
-      // hapus semua badge lama
       document.querySelectorAll('.badge').forEach(b => b.remove());
 
-      // hitung jumlah tugas per course
       let countMap = {};
       tasks.forEach(t => {
         const key = t.course + "_" + t.day;
         countMap[key] = (countMap[key] || 0) + 1;
       });
 
-      // pasang badge
       document.querySelectorAll('td[data-course]').forEach(td => {
         const course = td.getAttribute('data-course');
         const day = td.getAttribute('data-day');
         const key = course + "_" + day;
-
         if (countMap[key]) {
           const badge = document.createElement('span');
           badge.className = "badge";
@@ -260,12 +272,16 @@
     }
 
     function deleteTask(index) {
-      tasks.splice(index, 1);
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-      renderTasks();
+      const key = Object.keys(tasksMap)[index];
+      db.ref('tasks/' + key).remove();
     }
 
-    renderTasks();
+    // Listen data realtime dari Firebase
+    db.ref('tasks').on('value', snapshot => {
+      tasksMap = snapshot.val() || {};
+      tasks = Object.values(tasksMap);
+      renderTasks();
+    });
   </script>
 </body>
 </html>
